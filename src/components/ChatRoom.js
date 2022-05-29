@@ -1,9 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import io from 'socket.io-client'
 import useDynamicRefs from 'use-dynamic-refs';
 import Peer from 'simple-peer';
 import { VideoPlayer } from "./VideoPlayer";
 import { useParams } from "react-router-dom";
+import { UserContext } from "./Context";
+import { ChatBox } from "./ChatBox";
+import { UserDialog } from "./UserDialog";
 
 export const ChatRoom = () => {
     const [socketId, setSocketId] = useState(null);
@@ -15,6 +18,8 @@ export const ChatRoom = () => {
     const [stream, setStream] = useState();
     const [pc, setPc] = useState([]);
     const [isInit, setIsInit] = useState(false);
+    const { name } = useContext(UserContext);
+    const [messages, setMessages] = useState([]);
 
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -130,14 +135,33 @@ export const ChatRoom = () => {
                     }
                 };
             });
+            socket.on('message', (data) => {
+                console.log('get message', data);
+                setMessages((ms) => {
+                    const newMs = [...ms];
+                    newMs.push(data);
+                    return newMs;
+                });
+            });
         }
     }, [socketId, stream])
 
+    const sendMessage = (content) => {
+        setMessages((ms) => {
+            const newMs = [...ms];
+            newMs.push({name, content});
+            return newMs;
+        })
+        socket.emit('message', { room, name, content });
+    } 
+
     return (<div>
-        room Id : {room}
+        room Id : {room} user : {name}
         <video playsInline muted ref={setRef('myVideo')} autoPlay />
         {pc.map((id) => (
             <VideoPlayer  Ref={setRef(id)}/>
         ))}
+        <ChatBox messages={messages} sendMessage={sendMessage} />
+        <UserDialog open={ name.length === 0}/>
     </div>);
 }

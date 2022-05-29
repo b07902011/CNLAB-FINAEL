@@ -20,7 +20,12 @@ const stream = (socket) => {
     
     socket.on( 'return signal', ( data ) => {
         socket.to( data.to ).emit( 'return signal', { sender: data.sender, signal: data.signal } );
-    } );
+    });
+    
+    socket.on('message', (data) => {
+        console.log('get message', data);
+        socket.to(data.room).emit('message', {name:data.name, content:data.content});
+    })
 };
 
 module.exports = stream;
