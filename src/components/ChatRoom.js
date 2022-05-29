@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import io from 'socket.io-client'
 import useDynamicRefs from 'use-dynamic-refs';
 import Peer from 'simple-peer';
+import { VideoPlayer } from "./VideoPlayer";
+import { useParams } from "react-router-dom";
 
-export const Video = () => {
+export const ChatRoom = () => {
     const [socketId, setSocketId] = useState(null);
     const [socket, setSocket] = useState(io('http://localhost:5000'));
-    const [room, setRoom] = useState('test');
+    const { room } = useParams();
     const [getRef, setRef] = useDynamicRefs();
     const peers = useRef({})
     // const [getPeers, setPeers] = useDynamicRefs();
@@ -25,6 +27,15 @@ export const Video = () => {
             setSocketId(socket.id)
         })
     }, []);
+
+    const removePeer = (id) => {
+        setPc((p) => {
+            const newDraft = [...p];
+            newDraft.splice(newDraft.indexOf(id), 1);
+            return newDraft;
+        });
+        peers.current[id].destroy();
+    };
 
     useEffect(() => {
         if (!isInit && socketId && stream) {
@@ -45,13 +56,6 @@ export const Video = () => {
                     console.log(currentStream);
                     getRef(id).current.srcObject = currentStream;
                 });
-                // const ref = getPeers(id);
-                // console.log('ref', ref);
-                // ref.current = {
-                //     peer
-                // }
-                // console.log('ref', ref);
-                // console.log(id, getPeers(id));
                 peers.current[id] = peer;
                 setPc((p) => {
                     const newDraft = [...p];
@@ -71,11 +75,28 @@ export const Video = () => {
                     console.log(currentStream);
                     getRef(sender).current.srcObject = currentStream;
                 });
+
+                peer._pc.onconnectionstatechange = () => {
+                    switch ( peer._pc.iceConnectionState ) {
+                        case 'disconnected':
+                        case 'failed':
+                        case 'closed':
+                            console.log('connection failed');
+                            removePeer(sender);
+                            break;
+                    }
+                };
+                peer._pc.onsignalingstatechange = () => {
+                    // console.log(peer._pc.signalingState);
+                    switch ( peer._pc.signalingState ) {
+                        case 'closed':
+                            console.log( "Signalling state is 'closed'" );
+                            removePeer(sender);
+                            break;
+                    }
+                };
+
                 peer.signal(signal);
-                // const ref = getPeers(sender);
-                // ref.current = {
-                //     peer
-                // };
                 
                 peers.current[sender] = peer;
                 setPc((p) => {
@@ -89,21 +110,34 @@ export const Video = () => {
                 console.log('get return signal', signal);
                 console.log(sender, peers.current[sender]);
                 peers.current[sender].signal(signal);
+                peers.current[sender]._pc.onconnectionstatechange = () => {
+                    switch ( peers.current[sender]._pc.iceConnectionState ) {
+                        case 'disconnected':
+                        case 'failed':
+                        case 'closed':
+                            console.log('connection failed');
+                            removePeer(sender);
+                            break;
+                    }
+                };
+                peers.current[sender]._pc.onsignalingstatechange = () => {
+                    // console.log(peers.current[sender]._pc.signalingState);
+                    switch ( peers.current[sender]._pc.signalingState ) {
+                        case 'closed':
+                            console.log( "Signalling state is 'closed'" );
+                            removePeer(sender);
+                            break;
+                    }
+                };
             });
         }
     }, [socketId, stream])
 
-    // console.log(pc);
-    useEffect(() => {
-        pc.forEach(id => {
-            console.log(peers.current[id]);
-        })
-    }, [pc]);
-
     return (<div>
+        room Id : {room}
         <video playsInline muted ref={setRef('myVideo')} autoPlay />
         {pc.map((id) => (
-            <video key={`${id}-video`} ref={setRef(id)} playsInline autoPlay/>
+            <VideoPlayer  Ref={setRef(id)}/>
         ))}
     </div>);
 }
