@@ -24,8 +24,18 @@ const stream = (socket) => {
     
     socket.on('message', (data) => {
         console.log('get message', data);
-        socket.to(data.room).emit('message', {name:data.name, content:data.content});
-    })
+        socket.to(data.room).emit('message', { name: data.name, content: data.content });
+    });
+
+    socket.on('code', (data) => {
+        console.log('code');
+        socket.to(data.room).emit('code', { code: data.code });
+    });
+
+    socket.on('editor content', (data) => {
+        console.log('editor content');
+        socket.to(data.room).emit('editor content', { content: data.content });
+    });
 };
 
 module.exports = stream;

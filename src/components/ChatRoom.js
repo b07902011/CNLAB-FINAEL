@@ -9,6 +9,8 @@ import { useParams } from "react-router-dom";
 import { UserContext } from "./Context";
 import { ChatBox } from "./ChatBox";
 import { UserDialog } from "./UserDialog";
+import { CkEditer } from "./CkEditer";
+import { CodeEditer } from "./CodeEditer";
 
 export const ChatRoom = () => {
     const [socketId, setSocketId] = useState(null);
@@ -22,6 +24,8 @@ export const ChatRoom = () => {
     const [isInit, setIsInit] = useState(false);
     const { name } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
+    const [ckContent, setCkContent] = useState('');
+    const [code, setCode] = useState('');
 
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -84,7 +88,7 @@ export const ChatRoom = () => {
                 });
 
                 peer._pc.onconnectionstatechange = () => {
-                    switch ( peer._pc.iceConnectionState ) {
+                    switch (peer._pc.iceConnectionState) {
                         case 'disconnected':
                         case 'failed':
                         case 'closed':
@@ -95,9 +99,9 @@ export const ChatRoom = () => {
                 };
                 peer._pc.onsignalingstatechange = () => {
                     // console.log(peer._pc.signalingState);
-                    switch ( peer._pc.signalingState ) {
+                    switch (peer._pc.signalingState) {
                         case 'closed':
-                            console.log( "Signalling state is 'closed'" );
+                            console.log("Signalling state is 'closed'");
                             removePeer(sender);
                             break;
                     }
@@ -118,7 +122,7 @@ export const ChatRoom = () => {
                 console.log(sender, peers.current[sender]);
                 peers.current[sender].signal(signal);
                 peers.current[sender]._pc.onconnectionstatechange = () => {
-                    switch ( peers.current[sender]._pc.iceConnectionState ) {
+                    switch (peers.current[sender]._pc.iceConnectionState) {
                         case 'disconnected':
                         case 'failed':
                         case 'closed':
@@ -129,9 +133,9 @@ export const ChatRoom = () => {
                 };
                 peers.current[sender]._pc.onsignalingstatechange = () => {
                     // console.log(peers.current[sender]._pc.signalingState);
-                    switch ( peers.current[sender]._pc.signalingState ) {
+                    switch (peers.current[sender]._pc.signalingState) {
                         case 'closed':
-                            console.log( "Signalling state is 'closed'" );
+                            console.log("Signalling state is 'closed'");
                             removePeer(sender);
                             break;
                     }
@@ -141,22 +145,48 @@ export const ChatRoom = () => {
                 console.log('get message', data);
                 setMessages((ms) => {
                     const newMs = [...ms];
-                    newMs.push(data);
+                    newMs.push({...data, me:false});
                     return newMs;
                 });
             });
+
+            socket.on('code', (data) => {
+                console.log('get code');
+                setCode(data.code);
+            });
+
+            socket.on('editor content', (data) => {
+                console.log('editor content');
+                setCkContent(data.content);
+            });
         }
-    }, [socketId, stream])
+    }, [socketId, stream]);
 
     const sendMessage = (content) => {
         setMessages((ms) => {
             const newMs = [...ms];
-            newMs.push({name, content});
+            newMs.push({ name, content, me:true });
             return newMs;
         })
         socket.emit('message', { room, name, content });
-    } 
+    };
 
+    const onCodeChange = (c) => {
+        setCode((pre) => {
+            if (c !== pre)
+                socket.emit('code', { room, code: c });
+            return c;
+        });
+    }
+
+    const onContentChange = (c) => {
+        setCkContent((pre) => {
+            if (c !== pre)
+                socket.emit('editor content', { room, content: c });
+            return c;
+        });
+    }
+ 
     return (<div>
         room Id : {room} user : {name}
         <GridList cols={2} cellheight="auto">
@@ -167,7 +197,9 @@ export const ChatRoom = () => {
                 </GridListTile>
             ))} 
         </GridList>
-        <ChatBox messages={messages} sendMessage={sendMessage} user={name}/>
+        <ChatBox messages={messages} sendMessage={sendMessage} user={name} />
+        <CkEditer content={ckContent} onChange={onContentChange} />
+        <CodeEditer code={code} onChange={onCodeChange}/>
         <UserDialog open={ name.length === 0}/>
     </div>);
 }

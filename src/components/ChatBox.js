@@ -67,7 +67,7 @@ export const ChatBox = ({ messages, sendMessage, user}) => {
             <Paper className={classes.paper} zDepth={2}>
                 <Paper id="style-1" className={classes.messagesBody}>
                     {messages.map((m, index) => (
-                        m.name === user ? <MessageRight data={m} index={index} key={index}/> : <MessageLeft data={m} index={index} key={index}/>
+                        m.me ? <MessageRight data={m} index={index} key={index}/> : <MessageLeft data={m} index={index} key={index}/>
                     ))}
                 </Paper>
                 <TextInput message={message} setMessage={setMessage} onSendMessage={onSendMessage} handleSendMessage={handleSendMessage}/>
