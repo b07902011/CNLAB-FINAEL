@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import io from 'socket.io-client'
 import useDynamicRefs from 'use-dynamic-refs';
 import Peer from 'simple-peer';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile'
 import { VideoPlayer } from "./VideoPlayer";
 import { useParams } from "react-router-dom";
 import { UserContext } from "./Context";
@@ -157,11 +159,15 @@ export const ChatRoom = () => {
 
     return (<div>
         room Id : {room} user : {name}
-        <video playsInline muted ref={setRef('myVideo')} autoPlay />
-        {pc.map((id) => (
-            <VideoPlayer  Ref={setRef(id)}/>
-        ))}
-        <ChatBox messages={messages} sendMessage={sendMessage} />
+        <GridList cols={2} cellheight="auto">
+            <video playsInline muted ref={setRef('myVideo')} autoPlay />
+            {pc.map((id) => (
+                <GridListTile key={id}>
+                    <VideoPlayer  Ref={setRef(id)}/>
+                </GridListTile>
+            ))} 
+        </GridList>
+        <ChatBox messages={messages} sendMessage={sendMessage} user={name}/>
         <UserDialog open={ name.length === 0}/>
     </div>);
 }
