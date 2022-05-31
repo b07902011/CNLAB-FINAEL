@@ -6,7 +6,8 @@ import { deepOrange } from "@material-ui/core/colors";
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     messageRow: {
-      display: "flex"
+      display: "flex",
+      textAlign: "left"
     },
     messageRowRight: {
       display: "flex",
@@ -18,7 +19,6 @@ const useStyles = makeStyles((theme: Theme) =>
       marginBottom: "10px",
       padding: "10px",
       backgroundColor: "#A8DDFD",
-      width: "60%",
       //height: "50px",
       textAlign: "left",
       font: "400 .9em 'Open Sans', sans-serif",
@@ -85,7 +85,8 @@ const useStyles = makeStyles((theme: Theme) =>
 
     messageContent: {
       padding: 0,
-      margin: 0
+      margin: 0,
+      fontSize: "4px"
     },
     messageTimeStampRight: {
       position: "absolute",
@@ -109,7 +110,8 @@ const useStyles = makeStyles((theme: Theme) =>
       height: theme.spacing(4)
     },
     displayName: {
-      marginLeft: "20px"
+      marginLeft: "5px",
+      fontSize : "6px"
     }
   })
 );
@@ -127,7 +129,9 @@ export const MessageLeft = ({ data : {name, content}, index }) => {
           className={classes.orange}
         ></Avatar>
         <div>
-          <div className={classes.displayName}>{displayName}</div>
+            <div className={classes.displayName}>
+                {displayName}
+            </div>
           <div className={classes.messageBlue}>
             <div>
               <p className={classes.messageContent}>{message}</p>

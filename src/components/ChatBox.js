@@ -9,9 +9,9 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     paper: {
       width: "80vw",
-      height: "80vh",
-      maxWidth: "500px",
-      maxHeight: "700px",
+      height: "140vh",
+      maxWidth: "350px",
+      maxHeight: "600px",
       display: "flex",
       alignItems: "center",
       flexDirection: "column",
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     container: {
       width: "100vw",
-      height: "100vh",
+      height: "80vh",
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
@@ -50,17 +50,6 @@ export const ChatBox = ({ messages, sendMessage, user}) => {
         setMessage('');
         setOnSendMessage(false);
     }
-    /*return (
-        <div>
-            <List>
-                {messages.map((m, index) => (
-                    m.name === user ? <MessageRight data={m} index={index} key={index}/> : <MessageLeft data={m} index={index} key={index}/>
-                ))}
-            </List>
-            <Input placeholder="enter your message" value={message} onChange={(e)=>setMessage(e.target.value)}/>
-            <Button disabled={onSendMessage} onClick={handleSendMessage}>send message</Button>
-        </div>
-    );*/
     const classes = useStyles();
     return (
         <div className={classes.container}>
