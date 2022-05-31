@@ -12,9 +12,13 @@ import { UserDialog } from "./UserDialog";
 import { CkEditer } from "./CkEditer";
 import { CodeEditer } from "./CodeEditer";
 
+const userMediaAvailable = () => {
+    return !!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+};
+
 export const ChatRoom = () => {
     const [socketId, setSocketId] = useState(null);
-    const [socket, setSocket] = useState(io('http://localhost:5000'));
+    const [socket, setSocket] = useState(io('/stream'));
     const { room } = useParams();
     const [getRef, setRef] = useDynamicRefs();
     const peers = useRef({})
@@ -28,11 +32,13 @@ export const ChatRoom = () => {
     const [code, setCode] = useState('');
 
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then((currentStream) => {
-                setStream(currentStream);
-                getRef('myVideo').current.srcObject = currentStream;
-            });
+        if (userMediaAvailable)
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then((currentStream) => {
+                    setStream(currentStream);
+                    getRef('myVideo').current.srcObject = currentStream;
+                });
+        
         socket.on('connect', () => {
             console.log('socket connect', socket.id);
             setSocketId(socket.id)
