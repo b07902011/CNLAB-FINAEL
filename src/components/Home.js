@@ -26,10 +26,10 @@ export const Home = () => {
     const { name:userName, setName: setUserName } = useContext(UserContext);
     const navigate = useNavigate();
     const handleCreateRoom = () => {
-        navigate(name + '_' + generateRandomString(16));
+        navigate('room/' + name + '_' + generateRandomString(16));
     }
     const handleEnterRoom = () => {
-        navigate(room);
+        navigate('room/' + room);
     }
     const theme = createTheme();
     return (
