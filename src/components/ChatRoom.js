@@ -2,18 +2,26 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import io from 'socket.io-client'
 import useDynamicRefs from 'use-dynamic-refs';
 import Peer from 'simple-peer';
-import GridList from '@material-ui/core/GridList';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import GridList from "@material-ui/core/GridList";
 import GridListTile from '@material-ui/core/GridListTile'
+import Select from '@material-ui/core/Select';
+import CssBaseline from '@mui/material/CssBaseline';
+import Typography from '@mui/material/Typography';
 import { VideoPlayer } from "./VideoPlayer";
 import { useParams } from "react-router-dom";
 import { UserContext } from "./Context";
 import { ChatBox } from "./ChatBox";
 import { UserDialog } from "./UserDialog";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { CkEditer } from "./CkEditer";
 import { CodeEditer } from "./CodeEditer";
 
 export const ChatRoom = () => {
     const [socketId, setSocketId] = useState(null);
+    const [isChat, setIsChat] = useState(true);
     const [socket, setSocket] = useState(io('http://localhost:5000'));
     const { room } = useParams();
     const [getRef, setRef] = useDynamicRefs();
@@ -25,7 +33,7 @@ export const ChatRoom = () => {
     const { name } = useContext(UserContext);
     const [messages, setMessages] = useState([]);
     const [ckContent, setCkContent] = useState('');
-    const [code, setCode] = useState('');
+    const [code, setCode] = useState('int main()');
 
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -186,8 +194,59 @@ export const ChatRoom = () => {
             return c;
         });
     }
- 
-    return (<div>
+    const theme = createTheme();
+    const cols = pc.length < 2 ? 1 : (pc.length % 2 === 1 ? 4/(pc.length + 1): 4/(pc.length + 2));
+
+    return (
+        <ThemeProvider theme={theme}>
+          <Grid container component="main" >
+            <CssBaseline />
+            <Grid container xs={false} sm={4} md={8}>
+                <GridList cellHeight={300}>
+                    <GridListTile cols={cols}>
+                        <video playsInline muted ref={setRef('myVideo')} autoPlay style={{width: "100%"}}/>
+                    </GridListTile>
+                    {pc.map((id) => (
+                        <GridListTile cols={cols}>
+                            <VideoPlayer  Ref={setRef(id)}/>
+                        </GridListTile>
+                    ))};
+                </GridList>
+            </Grid>
+            <Grid item xs={12} sm={8} md={4} component={Paper} elevation={6}>
+                <Typography component="h6" variant="h6" fontSize="10px">
+                    room : {room}
+                </Typography>
+                <Typography component="h6" variant="h6" fontSize="10px">
+                    id : {name}
+                </Typography>
+                <Select
+                    native
+                    value={isChat}
+                    onChange={(e)=>setIsChat(e.target.value)}
+                >
+                    <option value="">Code Editor</option> />
+                    <option value={true}>Chat Room</option>
+                </Select>
+                <Box
+                    sx={{
+                        my: 8,
+                        mx: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Box component="form" sx={{ mt: 1 }}>
+                        {isChat ? <ChatBox messages={messages} sendMessage={sendMessage} user={name} /> : <CodeEditer code={code} onChange={onCodeChange}/>} 
+                    </Box>
+                </Box>
+            </Grid>
+          </Grid>
+          <UserDialog open={ name.length === 0}/>
+        </ThemeProvider>
+    );
+    /*return (<div>
         room Id : {room} user : {name}
         <GridList cols={2} cellheight="auto">
             <video playsInline muted ref={setRef('myVideo')} autoPlay />
@@ -201,5 +260,5 @@ export const ChatRoom = () => {
         <CkEditer content={ckContent} onChange={onContentChange} />
         <CodeEditer code={code} onChange={onCodeChange}/>
         <UserDialog open={ name.length === 0}/>
-    </div>);
+    </div>);*/
 }
